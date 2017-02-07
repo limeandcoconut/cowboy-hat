@@ -1,0 +1,26 @@
+{
+  "name": "cowboy-hat",
+  "version": "0.1.0",
+  "description": "A testing cli",
+  "main": "index.js",
+  "scripts": {
+    "run": "node app.js"
+  },
+  "keywords": [
+    "cowboy",
+    "cowboy-hat",
+    "hat",
+    "testing"
+  ],
+  "author": "limeandcoconut",
+  "license": "ISC",
+  "bin": {
+    "cowboy-hat": "bin/cowboy-hat.js"
+  },
+  "dependencies": {
+    "chai": "^3.5.0",
+    "chokidar": "^1.6.1",
+    "replace-in-file": "^2.2.2",
+    "yargs": "^6.6.0"
+  }
+}
