@@ -11,6 +11,7 @@ module.exports = () => {
     testDir = testDir || 'test/*.js';
     testEntry = testEntry || testDir;
 
+    // Default to source dir and test dir
     if (!watch || watch.length === 0) {
         watch = [to, testDir];
     }
@@ -23,7 +24,7 @@ module.exports = () => {
     chokidar.watch(watch, {
         ignored: /(^|[\/\\])\../
     }).on('all', (event, path) => {
-        // If an cowboyhat is already running or if the change is an add to the watch list skip it.
+        // If cowboyhat is already running or if the change is an add to the watch list skip it.
         if (begun || event === 'add') {
             return;
         }
@@ -49,17 +50,21 @@ module.exports = () => {
 
         console.time('time');
         replace(options)
-        .then(changedFiles => {
+        .then(() => {
             // Run istanbul coverage
             // istanbul cover _mocha test.js
             let cover = spawn('node_modules/.bin/istanbul', ['cover', 'node_modules/.bin/_mocha', testEntry]);
+            // Should this we be logging out?
             let logout = false;
+            // The log to be displayed
             let log = '';
 
             cover.stdout.on('data', data => {
+                // If the data matches the bookending lines for an istanbul report toggle logging and log first line
                 if (/={5}/.test(data)) {
                     logout = !logout;
                     log += data;
+                // Else maybe log
                 } else if (logout) {
                     log += data;
                 }
@@ -69,7 +74,8 @@ module.exports = () => {
                 console.log(`stderr: ${data}`);
             });
 
-            cover.on('close', (code) => {
+            cover.on('close', () => {
+                // Log out what was recorded
                 console.log(log);
 
                 // Swap back to original dist
@@ -79,7 +85,7 @@ module.exports = () => {
                 options.with = from;
 
                 replace(options)
-                .then(changedFiles => {
+                .then((changedFiles) => {
                     // After swap reallow changes and indicate that these files are deferred
                     // This is what allows the change fired from this event to be caught and skipped
                     deferred = changedFiles;
@@ -88,13 +94,11 @@ module.exports = () => {
                 })
                 .catch(error => {
                     console.error('Error occurred in inital direcotry swap:', error);
-                    //    begun = false;
                 });
             });
         })
         .catch(error => {
             console.error('Error occurred in inital direcotry swap:', error);
-            //    begun = false;
         });
     });
 };
