@@ -58,13 +58,6 @@ let argv = yargs
     .help()
     .argv;
 
-
-// let watch = argv.w || config.watch;
-// let to = argv.t || config.to;
-// let from = argv.from || config.from;
-// let testDir = argv.testDir || config.testDir;
-// let testEntry = argv.testEntry || config.testEntry;
-
 config.watch = argv.watch || config.watch;
 config.to = argv.to || config.to;
 config.from = argv.from || config.from;
