@@ -86,7 +86,7 @@ Argument: --to or -t
 
 ### Test Directory
 The directory where your tests are kept.
-Default: `./tests/*.js`
+Default: `./test/*.js`
 Type: String
 Argument: --testDir or -d
 
@@ -103,7 +103,6 @@ Type: Array
 Argument: --watch or -w
 
 ## Config file
-
 You can use a config file `cowboy-hat.config.js` for any of these arguments. Cowboy hat will look for it when it is run from the command line and any arguments supplied to the cli will override the config.
 
 ```js
@@ -116,12 +115,15 @@ module.exports = {
 };
 ```
 
+## Testing Cowboy Hat
+To test it just pull the repo and run `cowboy-hat` in it's root dir and make trigger a change on either `test/test.js` or `src/mock-code.js`. Everything is passing if you have 100% line coverage.
+
 ## TODO:
 
 [ ] *FAASSTERR*
-[ ] Add tests (why didn't I start with this?)
 [ ] Make watching optional
 [ ] Switch to (webpack-esque) constructor syntax
+[ ] Add better tests
 
 ## Usage Stats
 

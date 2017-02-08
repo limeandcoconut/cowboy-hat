@@ -1,16 +1,17 @@
 {
   "name": "cowboy-hat",
-  "version": "0.1.0",
-  "description": "A testing cli",
+  "version": "1.0.0",
+  "description": "A cli for testing the other universe of code",
   "main": "index.js",
   "scripts": {
-    "run": "node app.js"
+      "test": "node self-test.js"
   },
   "keywords": [
-    "cowboy",
     "cowboy-hat",
+    "cowboy",
     "hat",
-    "testing"
+    "testing",
+    "babel"
   ],
   "author": "limeandcoconut",
   "license": "ISC",
@@ -18,9 +19,12 @@
     "cowboy-hat": "bin/cowboy-hat.js"
   },
   "dependencies": {
-    "chai": "^3.5.0",
     "chokidar": "^1.6.1",
     "replace-in-file": "^2.2.2",
     "yargs": "^6.6.0"
+  },
+  "devDependencies": {
+    "istanbul": "1.0.0-alpha.2",
+    "mocha": "^3.2.0"
   }
 }
