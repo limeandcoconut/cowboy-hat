@@ -36,7 +36,7 @@ Run tests written for files in `dist/` against `src/`.
 cowboy-hat --from '../dist/' --to '../src/'
 ```
 
-This will watch files in `src/` and `test/` for changes and report like so:
+This will watch files in `src/` and `test/` for changes, generate coverage reports, and report like so:
 ```sh
 =============================== Coverage summary ===============================
 Statements   : 100% ( 236/236 )
@@ -45,6 +45,8 @@ Functions    : 92.73% ( 51/55 )
 Lines        : 100% ( 234/234 )
 ================================================================================
 ```
+
+**Yes!** You can write your tests in es6!
 
 ## How?
 
