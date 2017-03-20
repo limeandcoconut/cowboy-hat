@@ -100,14 +100,15 @@ Argument: --testEntry or -e
 
 ### Watch
 An array of files to watch for changes.
-Default: `[<to>, <testDir>]`
+Default: `[<to>.replace(/^\.\.\//, ''), <testDir>]`
+Defaults to the `to` and `testDir` arguments. `to` will have the first `../` trimmed from the front of the string if it is present. This is because by default cowboy-hat expects the `to` and `from` arguments to be one directory lower than where the command is run from.
 Type: Array
 Argument: --watch or -w
 
 ## Config file
 You can use a config file `cowboy-hat.config.js` for any of these arguments. Cowboy hat will look for it when it is run from the command line and any arguments supplied to the cli will override the config.
 
-```js
+```json
 module.exports = {
     from: '../dist/',
     to: '../src/',
@@ -115,6 +116,22 @@ module.exports = {
     testDir: 'test/*.js',
     testEntry: 'test.js',
 };
+```
+
+## Directory Structure
+By default cowboy-hat expects that your `to` and `from` will be one directory lower than where the command is run from. This is why the paths are shown as they are.
+I.e.
+Watch the directories `./src` and `./test` for changes then replace `'../dist'` with `'../src'`  inside of `./test` (then run tests and swap back).
+
+```
+project -
+    |____dist +
+        |____foo.js
+    |____src +
+        |____foo.js
+    |____test +
+        |____foo-tests.js
+    |____test.js
 ```
 
 ## Testing Cowboy Hat

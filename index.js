@@ -11,9 +11,11 @@ module.exports = () => {
     testDir = testDir || 'test/*.js';
     testEntry = testEntry || testDir;
 
+    let toWatch = /^\.\.\//.test(to) ? to.replace(/^\.\.\//, '') : to;
+
     // Default to source dir and test dir
     if (!watch || watch.length === 0) {
-        watch = [to, testDir];
+        watch = [toWatch, testDir];
     }
 
     let begun = false;
@@ -22,7 +24,7 @@ module.exports = () => {
 
     // Watch test and src dirs, ignores .dotfiles
     chokidar.watch(watch, {
-        ignored: /(^|[\/\\])\../
+        ignored: /(^|[\/\\])\../,
     }).on('all', (event, path) => {
         // If cowboyhat is already running or if the change is an add to the watch list skip it.
         if (begun || event === 'add') {
