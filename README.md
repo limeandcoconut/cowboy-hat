@@ -140,6 +140,7 @@ To test it just pull the repo and run `cowboy-hat` in it's root dir and make tri
 ## TODO:
 
 - [ ] *FAASSTERR*
+- [ ] Make cowboy-hat exit when no files are being watched
 - [ ] Make watching optional
 - [ ] Switch to (webpack-esque) constructor syntax
 - [ ] Add better tests

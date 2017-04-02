@@ -1,10 +1,8 @@
 #! /usr/bin/env node
 
-// console.time('require1');
 const yargs = require('yargs');
 const path = require('path');
 const cowboyHat = require('../index.js');
-// console.timeEnd('require1');
 
 // cowboy-hat -f '../dist/' -t '../src/' -e 'test.js' -w ['../src/', '../dist/']
 // cowboy-hat -f '../dist/' -t '../src/' -e 'test.js'
@@ -12,13 +10,11 @@ const cowboyHat = require('../index.js');
 
 let config;
 
-// console.time('args');
-
-
 try {
     config = require(path.join(process.cwd(), '/cowboy-hat.config.js'));
 } catch (error) {
     // DON'T PANIC
+    config = {};
 }
 
 let argv = yargs
@@ -63,6 +59,5 @@ config.to = argv.to || config.to;
 config.from = argv.from || config.from;
 config.testDir = argv.testDir || config.testDir;
 config.testEntry = argv.testEntry || config.testEntry;
-// console.timeEnd('args');
 
 cowboyHat(config);
