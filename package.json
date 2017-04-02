@@ -1,10 +1,10 @@
 {
   "name": "cowboy-hat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A cli for testing the other universe of code",
   "main": "index.js",
   "scripts": {
-      "test": "node self-test.js"
+    "test": "node self-test.js"
   },
   "repository": {
     "type": "git",
