@@ -6,6 +6,10 @@
   "scripts": {
       "test": "node self-test.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "github.com/limeandcoconut/cowboy-hat"
+  },
   "keywords": [
     "cowboy-hat",
     "cowboy",
