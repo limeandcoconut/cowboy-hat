@@ -14,9 +14,9 @@ A package for testing code from the other universe (of uncompiled code).
 
 ## What?
 
-This is designed for use when generating code coverage reports on a project using babel.js or other compilation tools. Cowboy Hat allows you to write your tests against your compiled code but generate quick coverage reports against your source as you write and fulfill your tests. Also, it's a small [Futurama reference](https://nodei.co/npm/cowboy-hat/).
+This is designed for use when generating code coverage reports on a project using babel.js or other compilation tools. Cowboy Hat allows you to write your tests against your compiled code but generate quick coverage reports against your source as you write and fulfill your tests. Also, it's a small [Futurama reference](http://futurama.wikia.com/wiki/I_Dated_a_Robot).
 
-[![Futurama](http://i.imgur.com/HtsigPd.jpg)](https://nodei.co/npm/cowboy-hat/)
+![Futurama](http://i.imgur.com/HtsigPd.jpg)
 
 e.g.
 
@@ -108,7 +108,7 @@ Argument: --watch or -w
 ## Config file
 You can use a config file `cowboy-hat.config.js` for any of these arguments. Cowboy hat will look for it when it is run from the command line and any arguments supplied to the cli will override the config.
 
-```json
+```js
 module.exports = {
     from: '../dist/',
     to: '../src/',
@@ -136,6 +136,18 @@ project -
 
 ## Testing Cowboy Hat
 To test it just pull the repo and run `cowboy-hat` in it's root dir and make trigger a change on either `test/test.js` or `src/mock-code.js`. Everything is passing if you have 100% line coverage.
+
+## Feedback ✉️
+It is greatly appreciated! 🎉
+Please hit me up, I'd love to hear what you have to say!
+
+[messagethesmith@gmail.com](messagethesmith@gmail.com)
+
+[https://github.com/limeandcoconut](https://github.com/limeandcoconut)
+
+[@limeandcoconut](https://twitter.com/limeandcoconut)
+
+Cheers!
 
 ## TODO:
 
