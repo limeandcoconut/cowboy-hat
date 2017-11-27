@@ -44,8 +44,8 @@ module.exports = () => {
         // Replace original dir with cowboyhat dir
         let options = {
             files: [testDir],
-            replace: new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'), 'g'),
-            with: to,
+            from: new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'), 'g'),
+            to,
             allowEmptyPaths: false,
             encoding: 'utf8',
         }
