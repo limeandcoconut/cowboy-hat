@@ -1,9 +1,3 @@
 {
-    "extends": "cleverly",
-    "rules": {
-        "semi": [
-            "error",
-            "always"
-        ]
-    }
+    "extends": "brian"
 }

@@ -1,20 +1,20 @@
 #! /usr/bin/env node
 
-const yargs = require('yargs');
-const path = require('path');
-const cowboyHat = require('../index.js');
+const yargs = require('yargs')
+const path = require('path')
+const cowboyHat = require('../index.js')
 
 // cowboy-hat -f '../dist/' -t '../src/' -e 'test.js' -w ['../src/', '../dist/']
 // cowboy-hat -f '../dist/' -t '../src/' -e 'test.js'
 // cowboy-hat -f '../dist/' -t '../src/'
 
-let config;
+let config
 
 try {
-    config = require(path.join(process.cwd(), '/cowboy-hat.config.js'));
+    config = require(path.join(process.cwd(), '/cowboy-hat.config.js'))
 } catch (error) {
     // DON'T PANIC
-    config = {};
+    config = {}
 }
 
 let argv = yargs
@@ -27,7 +27,7 @@ let argv = yargs
     })
     .option('to', {
         alias: 't',
-        describe: 'the directory that will be swappted to',
+        describe: 'the directory that will be swapped to',
         type: 'string',
         default: '../src/',
         demand: !config,
@@ -52,12 +52,12 @@ let argv = yargs
     })
     // .demandOption(['from', 'to'], 'Please provide both to and from arguments to work with this tool')
     .help()
-    .argv;
+    .argv
 
-config.watch = argv.watch || config.watch;
-config.to = argv.to || config.to;
-config.from = argv.from || config.from;
-config.testDir = argv.testDir || config.testDir;
-config.testEntry = argv.testEntry || config.testEntry;
+config.watch = argv.watch || config.watch
+config.to = argv.to || config.to
+config.from = argv.from || config.from
+config.testDir = argv.testDir || config.testDir
+config.testEntry = argv.testEntry || config.testEntry
 
-cowboyHat(config);
+cowboyHat(config)
