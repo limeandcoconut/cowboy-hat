@@ -151,6 +151,7 @@ Cheers!
 
 ## TODO:
 
+- [ ] Examine the regex switching back to old dir names
 - [ ] *FAASSTERR*
 - [ ] Make cowboy-hat exit when no files are being watched
 - [ ] Make watching optional
