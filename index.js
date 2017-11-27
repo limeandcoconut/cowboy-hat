@@ -95,7 +95,7 @@ module.exports = () => {
                             console.timeEnd('time')
                         })
                         .catch(error => {
-                            console.error('Error occurred in inital direcotry swap:', error)
+                            console.error('Error occurred in final direcotry swap:', error)
                         })
                 })
             })
