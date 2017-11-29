@@ -9,26 +9,25 @@ const path = require('path')
 
 const pathsCache = path.resolve(__dirname, '.paths.cache.js')
 
-module.exports = async function() {
+module.exports = async function(args = {}) {
     let {
         srcDir = './src/',
         distDir = './dist/',
         testDir = './test/',
         testEntry = `${testDir}test.js`,
         watch = [srcDir, testDir],
-        // writeCache = false,
-    } = arguments[0]
+    } = args
 
     srcDir = path.basename(srcDir)
     distDir = path.basename(distDir)
 
-    let args = Object.values(arguments[0]).join(',')
+    let argsHash = Object.values(args).join(',')
     let writeCache = false
     let cachedArgs
 
     // Check if the cache exists or if it is outdated.
     try {
-        cachedArgs = require(pathsCache).args
+        cachedArgs = require(pathsCache).argsHash
     } catch (error) {
         // Cache doesn't exist, write it.
         if (/Cannot\sfind\smodule/.test(error)) {
@@ -40,7 +39,7 @@ module.exports = async function() {
     }
 
     // If the cache isn't applicable write a new one.
-    if (cachedArgs !== args) {
+    if (cachedArgs !== argsHash) {
         writeCache = true
     }
 
@@ -71,7 +70,7 @@ module.exports = async function() {
         // Write the paths to our paths file.
         // This will mkdir -p and or truncate if necessary.
         write.sync(pathsCache, `module.exports = {
-            args: '${args}',
+            argsHash: '${argsHash}',
             interceptPaths: ${JSON.stringify(interceptPaths)},
             distRegex: ${distRegex}, /* This is a tring that we want to parse as a RegExp literal later. */
             srcDir: '${path.resolve(srcDir)}',
