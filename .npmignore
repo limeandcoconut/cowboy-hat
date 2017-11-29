@@ -1,8 +1,12 @@
 node_modules
+.cowboyhat
 coverage
+.nyc_output
 dist
 src
 test
+wip
 
+.paths.cache.js
 self-test.js
 npm-debug.log

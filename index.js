@@ -1,106 +1,137 @@
 const chokidar = require('chokidar')
-const replace = require('replace-in-file')
+const spinner = require('./avaspinner.js')
+const chalk = require('chalk')
+const write = require('write')
+
 const spawn = require('child_process').spawn
+const fs = require('fs')
+const path = require('path')
 
-module.exports = () => {
+const pathsCache = path.resolve(__dirname, '.paths.cache.js')
 
-    var {watch, to, from, testDir, testEntry} = arguments
+module.exports = async function() {
+    let {
+        srcDir = './src/',
+        distDir = './dist/',
+        testDir = './test/',
+        testEntry = `${testDir}test.js`,
+        watch = [srcDir, testDir],
+        // writeCache = false,
+    } = arguments[0]
 
-    to = to || '../src/'
-    from = from || '../dist/'
-    testDir = testDir || 'test/*.js'
-    testEntry = testEntry || testDir
+    srcDir = path.basename(srcDir)
+    distDir = path.basename(distDir)
 
-    let toWatch = /^\.\.\//.test(to) ? to.replace(/^\.\.\//, '') : to
+    let args = Object.values(arguments[0]).join(',')
+    let writeCache = false
+    let cachedArgs
 
-    // Default to source dir and test dir
-    if (!watch || watch.length === 0) {
-        watch = [toWatch, testDir]
+    // Check if the cache exists or if it is outdated.
+    try {
+        cachedArgs = require(pathsCache).args
+    } catch (error) {
+        // Cache doesn't exist, write it.
+        if (/Cannot\sfind\smodule/.test(error)) {
+            writeCache = true
+        // Somethings really wrong, throw.
+        } else {
+            throw new Error(error)
+        }
     }
 
-    let begun = false
-    let deferred = []
-    let deferredIndex
+    // If the cache isn't applicable write a new one.
+    if (cachedArgs !== args) {
+        writeCache = true
+    }
 
-    // Watch test and src dirs, ignores .dotfiles
+    if (writeCache) {
+        // Regex to test required paths against.
+        // This is a string because it will be parsed as js when our paths files is required.
+        let distRegex = `/(^|[\\/\\.])${distDir}\\//`
+
+        // Intersect the contents of src and dist to get the paths that need to be intercepted.
+        let srcContents = fs.readdirSync(srcDir)
+        // srcRead = new Promise((resolve) => {
+        //     fs.readdir(srcDir, () => {
+        //         srcContents
+        //     })
+        // }
+        let distContents = fs.readdirSync(distDir)
+        let interceptPaths = {}
+        srcContents.forEach((interceptPath) => {
+            if (distContents.includes(interceptPath)) {
+                interceptPath = path.basename(interceptPath, path.extname(interceptPath))
+                interceptPaths[interceptPath] = 1
+            }
+        })
+
+        // Log these //TODO
+        console.log(`\nPaths to be intercepted: \n${chalk.green(Object.keys(interceptPaths))}`)
+
+        // Write the paths to our paths file.
+        // This will mkdir -p and or truncate if necessary.
+        write.sync(pathsCache, `module.exports = {
+            args: '${args}',
+            interceptPaths: ${JSON.stringify(interceptPaths)},
+            distRegex: ${distRegex}, /* This is a tring that we want to parse as a RegExp literal later. */
+            srcDir: '${path.resolve(srcDir)}',
+            distDir: '${path.resolve(distDir)}',
+            testEntry: '${path.resolve(testEntry)}',
+        }`)
+    }
+
+    let spawnOptions = {
+        stdio: [
+            process.stdin,
+            process.stdout,
+            process.stderr,
+        ],
+    }
+
+    // Init flag to true so that we don't start until async actions are done
+    let busy = false
+    let runCount = 0
+
+    // Ignores dotfiles.
     chokidar.watch(watch, {
         ignored: /(^|[\/\\])\../,
-    }).on('all', (event, path) => {
+    }).on('all', async(event) => {
+
         // If cowboyhat is already running or if the change is an add to the watch list skip it.
-        if (begun || event === 'add') {
+        if (busy || event === 'add') {
             return
         }
+        busy = true
 
-        // If the changed file is deferred skip it and reinstate it
-        deferredIndex = deferred.indexOf(path)
-        if (deferredIndex !== -1) {
-            deferred.splice(deferredIndex, 1)
-            return
+        // Await coverage and testing.
+        await new Promise((resolve) => {
+            spawn(
+                'node_modules/.bin/nyc',
+                ['node_modules/.bin/ava', path.resolve(__dirname, './intercept.js')],
+                spawnOptions,
+            ).on('close', resolve)
+        })
+
+        // TODO: Find out why this is necessary and document it here.
+        if (runCount) {
+            console.log('\n')
         }
+        // Start the spinner.
+        spinner.start(' ')
 
-        // Flag that we have begun working
-        begun = true
+        // Await the lcov report.
+        await new Promise((resolve) => {
+            spawn(
+                'node_modules/.bin/nyc',
+                ['report', '--reporter=lcov'],
+                spawnOptions,
+            ).on('close', resolve)
+        })
 
-        // Replace original dir with cowboyhat dir
-        let options = {
-            files: [testDir],
-            from: new RegExp(from.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'), 'g'),
-            to,
-            allowEmptyPaths: false,
-            encoding: 'utf8',
-        }
-
-        console.time('time')
-        replace(options)
-            .then(() => {
-            // Run istanbul coverage
-            // istanbul cover _mocha test.js
-                let cover = spawn('node_modules/.bin/istanbul', ['cover', 'node_modules/.bin/_mocha', testEntry])
-                // Should this we be logging out?
-                let logout = false
-                // The log to be displayed
-                let log = ''
-
-                cover.stdout.on('data', data => {
-                // If the data matches the bookending lines for an istanbul report toggle logging and log first line
-                    if (/={5}/.test(data)) {
-                        logout = !logout
-                        log += data
-                        // Else maybe log
-                    } else if (logout) {
-                        log += data
-                    }
-                })
-
-                cover.stderr.on('data', data => {
-                    console.log(`stderr: ${data}`)
-                })
-
-                cover.on('close', () => {
-                // Log out what was recorded
-                    console.log(log)
-
-                    // Swap back to original dist
-                    // Take off the cowboyhat :(
-                    options.replace = /..\/src\//g
-                    options.replace = new RegExp(to.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'), 'g')
-                    options.with = from
-
-                    replace(options)
-                        .then((changedFiles) => {
-                            // After swap reallow changes and indicate that these files are deferred
-                            // This is what allows the change fired from this event to be caught and skipped
-                            deferred = changedFiles
-                            begun = false
-                            console.timeEnd('time')
-                        })
-                        .catch(error => {
-                            console.error('Error occurred in final direcotry swap:', error)
-                        })
-                })
-            })
-            .catch(error => {
-                console.error('Error occurred in inital direcotry swap:', error)
-            })
+        // When the report is done finish up.
+        spinner.stop('\nlcov complete.')
+        busy = false
+        runCount += 1
     })
+
 }

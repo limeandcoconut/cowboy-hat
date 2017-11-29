@@ -1,8 +1,6 @@
-var code = require('../dist/mock-code.js')
-var assert = require('assert')
+const result = require('../dist/mock-code.js')
+const test = require('ava')
 
-/* eslint-disable no-undef */
-
-it('Should equal 1', function() {
-    assert.equal(code, 1)
+test('Should equal 1', (assert) => {
+    assert.true(result === 1)
 })

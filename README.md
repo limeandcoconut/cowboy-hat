@@ -151,8 +151,11 @@ Cheers!
 
 ## TODO:
 
-- [ ] Examine the regex switching back to old dir names
+- [ ] Document promise nature of package
 - [ ] *FAASSTERR*
+- [ ] Init method
+
+### Maybe
 - [ ] Make cowboy-hat exit when no files are being watched
 - [ ] Make watching optional
 - [ ] Switch to (webpack-esque) constructor syntax

@@ -4,49 +4,50 @@ const yargs = require('yargs')
 const path = require('path')
 const cowboyHat = require('../index.js')
 
-// cowboy-hat -f '../dist/' -t '../src/' -e 'test.js' -w ['../src/', '../dist/']
-// cowboy-hat -f '../dist/' -t '../src/' -e 'test.js'
-// cowboy-hat -f '../dist/' -t '../src/'
+// cowboy-hat -d './dist/' -s './src/' -e 'test.js' -w ['./src/', './tests/'] -t './tests'
+// cowboy-hat -d './dist/' -s './src/' -e 'test.js' -w ['./src/', './tests/']
+// cowboy-hat -d './dist/' -s './src/' -e 'test.js'
+// cowboy-hat -d './dist/' -s './src/'
 
 let config
 
 try {
     config = require(path.join(process.cwd(), '/cowboy-hat.config.js'))
 } catch (error) {
-    // DON'T PANIC
+    // DON'T PANIC 👍
     config = {}
 }
 
 let argv = yargs
-    .option('from', {
-        alias: 'f',
-        describe: 'the directory that will be swapped out',
+    .option('distDir', {
+        alias: 'd',
+        describe: 'the directory that will be intercepted',
         type: 'string',
-        default: '../dist/',
+        default: './dist/',
         demand: !config,
     })
-    .option('to', {
-        alias: 't',
-        describe: 'the directory that will be swapped to',
+    .option('srcDir', {
+        alias: 's',
+        describe: 'the directory that will be the destination',
         type: 'string',
-        default: '../src/',
+        default: './src/',
         demand: !config,
     })
     .option('testDir', {
-        alias: 'd',
+        alias: 't',
         describe: 'the directory that holds your tests',
         type: 'string',
-        default: 'test/*.js',
+        default: './test/',
     })
     .option('testEntry', {
         alias: 'e',
-        describe: 'the entry file for testing',
+        describe: 'the entry file for testing (default: testDir)',
         type: 'string',
-        default: 'test/*.js',
+        default: './test/',
     })
     .option('watch', {
         alias: 'w',
-        describe: 'a glob of directories to watch [default: [<to>, <testEntry>] ]',
+        describe: 'a glob of directories to watch [default: [<srcDir>, <testEntry>] ]',
         type: 'array',
         default: [],
     })
@@ -55,8 +56,8 @@ let argv = yargs
     .argv
 
 config.watch = argv.watch || config.watch
-config.to = argv.to || config.to
-config.from = argv.from || config.from
+config.srcDir = argv.srcDir || config.srcDir
+config.distDir = argv.distDir || config.distDir
 config.testDir = argv.testDir || config.testDir
 config.testEntry = argv.testEntry || config.testEntry
 

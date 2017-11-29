@@ -1,4 +1,8 @@
 node_modules
-
+.cowboyhat
+wip
 coverage
+.nyc_output
+
 npm-debug.log
+.paths.cache.js

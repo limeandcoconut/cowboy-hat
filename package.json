@@ -1,6 +1,6 @@
 {
   "name": "cowboy-hat",
-  "version": "1.0.2",
+  "version": "2.0.0-alpha0",
   "description": "A cli for testing the other universe of code",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,12 @@
     "cowboy",
     "hat",
     "testing",
-    "babel"
+    "babel",
+    "ava",
+    "coverage",
+    "code coverage",
+    "nyc",
+    "futurama"
   ],
   "author": "limeandcoconut",
   "license": "ISC",
@@ -23,12 +28,26 @@
     "cowboy-hat": "bin/cowboy-hat.js"
   },
   "dependencies": {
+    "chalk": "^2.3.0",
     "chokidar": "^1.6.1",
-    "replace-in-file": "^2.2.2",
+    "cli-spinners": "^1.1.0",
+    "log-update": "^2.3.0",
+    "require-hacker": "^3.0.1",
+    "write": "^1.0.3",
     "yargs": "^6.6.0"
   },
   "devDependencies": {
-    "istanbul": "1.0.0-alpha.2",
-    "mocha": "^3.2.0"
+    "ava": "^0.24.0",
+    "nyc": "^11.3.0"
+  },
+  "peerDependencies": {
+    "ava": "^0.24.0",
+    "nyc": "^11.3.0"
+  },
+  "nyc": {
+    "exclude": [
+      "intercept.js",
+      ".paths.cache.js"
+    ]
   }
 }
