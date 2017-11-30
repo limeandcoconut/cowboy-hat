@@ -25,6 +25,7 @@ module.exports = async function(args = {}) {
         testDir = './test/',
         testEntry = `${testDir}test.js`,
         watch = [srcDir, testDir],
+        forceRewriteCache = false,
     } = args
 
     srcDir = path.basename(srcDir)
@@ -53,7 +54,7 @@ module.exports = async function(args = {}) {
         writeCache = true
     }
 
-    if (writeCache) {
+    if (writeCache || forceRewriteCache) {
         // Regex to test required paths against.
         // This is a string because it will be parsed as js when our paths files is required.
         let distRegex = `/(^|[\\/\\.])${distDir}\\//`

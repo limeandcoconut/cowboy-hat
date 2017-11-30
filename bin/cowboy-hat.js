@@ -51,7 +51,12 @@ let argv = yargs
         type: 'array',
         default: [],
     })
-    // .demandOption(['from', 'to'], 'Please provide both to and from arguments to work with this tool')
+    .option('forceRewriteCache', {
+        alias: 'f',
+        describe: 'force the internal paths cache to update (usually for dev)',
+        type: 'boolean',
+        default: false,
+    })
     .help()
     .argv
 
