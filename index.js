@@ -49,29 +49,34 @@ module.exports = async function(args = {}) {
         let distRegex = `/(^|[\\/\\.])${distDir}\\//`
 
         // Intersect the contents of src and dist to get the paths that need to be intercepted.
-        let srcContents = fs.readdirSync(srcDir)
-        // srcRead = new Promise((resolve) => {
-        //     fs.readdir(srcDir, () => {
-        //         srcContents
-        //     })
-        // }
-        let distContents = fs.readdirSync(distDir)
-        let interceptPaths = {}
-        srcContents.forEach((interceptPath) => {
-            if (distContents.includes(interceptPath)) {
-                interceptPath = path.basename(interceptPath, path.extname(interceptPath))
-                interceptPaths[interceptPath] = 1
+        let srcRead = new Promise((resolve) => {
+            fs.readdir(srcDir, (error, files) => {
+                resolve(files)
+            })
+        })
+        let distRead = new Promise((resolve) => {
+            fs.readdir(distDir, (error, files) => {
+                resolve(files)
+            })
+        })
+        let [dir1Contents, dir2Contents] = await Promise.all([srcRead, distRead])
+
+        let interceptFiles = []
+        dir1Contents.forEach((file) => {
+            if (dir2Contents.includes(file)) {
+                file = path.parse(file).name
+                interceptFiles.push(file)
             }
         })
 
         // Log these //TODO
-        console.log(`\nPaths to be intercepted: \n${chalk.green(Object.keys(interceptPaths))}`)
+        console.log(`\nPaths to be intercepted: \n${chalk.green(interceptFiles)}`)
 
         // Write the paths to our paths file.
         // This will mkdir -p and or truncate if necessary.
         write.sync(pathsCache, `module.exports = {
             argsHash: '${argsHash}',
-            interceptPaths: ${JSON.stringify(interceptPaths)},
+            interceptFiles: ${JSON.stringify(interceptFiles)},
             distRegex: ${distRegex}, /* This is a tring that we want to parse as a RegExp literal later. */
             srcDir: '${path.resolve(srcDir)}',
             distDir: '${path.resolve(distDir)}',

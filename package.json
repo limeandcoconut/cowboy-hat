@@ -1,6 +1,6 @@
 {
   "name": "cowboy-hat",
-  "version": "2.0.0-alpha0",
+  "version": "2.0.0-alpha.1",
   "description": "A cli for testing the other universe of code",
   "main": "index.js",
   "scripts": {
