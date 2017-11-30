@@ -151,10 +151,12 @@ Cheers!
 
 ## TODO:
 
-- [ ] Handle .js only or perhaps multiple file types to prevent intersection
-- [ ] Document promise nature of package
+- [ ] Make issues for yargs.
+- [ ] Fix yargs issues.
+- [ ] Add emojis! 🎉
+- [ ] Handle .js only or perhaps multiple file types to prevent filename intersection.
+- [ ] Document promise nature of package.
 - [ ] *FAASSTERR*
-- [ ] Init method
 
 ### Maybe
 - [ ] Make cowboy-hat exit when no files are being watched

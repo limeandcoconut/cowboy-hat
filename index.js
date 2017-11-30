@@ -23,7 +23,7 @@ module.exports = async function(args = {}) {
         srcDir = './src/',
         distDir = './dist/',
         testDir = './test/',
-        testEntry = `${testDir}test.js`,
+        testEntry = path.join(testDir, './test.js'),
         watch = [srcDir, testDir],
         forceRewriteCache = false,
     } = args
@@ -32,7 +32,7 @@ module.exports = async function(args = {}) {
     distDir = path.basename(distDir)
 
     // Create hash of arguments to identify the cache that may be created.
-    let argsHash = Object.values(args).join(',')
+    let argsHash = `${srcDir},${distDir},${testDir},${testEntry},${JSON.stringify(watch)},${forceRewriteCache}`
     let writeCache = false
     let cachedArgs
 
@@ -55,6 +55,9 @@ module.exports = async function(args = {}) {
     }
 
     if (writeCache || forceRewriteCache) {
+        if (forceRewriteCache) {
+            console.log(chalk.yellow('\nForcing cache rewrite.'))
+        }
         // Regex to test required paths against.
         // This is a string because it will be parsed as js when our paths files is required.
         let distRegex = `/(^|[\\/\\.])${distDir}\\//`
@@ -81,8 +84,6 @@ module.exports = async function(args = {}) {
                 interceptFiles.push(file)
             }
         })
-
-        console.log(`\nPaths to be intercepted: \n${chalk.green(interceptFiles)}`)
 
         // Write the paths to our paths file.
         // This will runcate if necessary.

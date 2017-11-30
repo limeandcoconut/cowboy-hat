@@ -1,6 +1,9 @@
 const path = require('path')
+const chalk = require('chalk')
 // Get cached path information.
 const {interceptFiles, distRegex, srcDir, distDir, testEntry} = require('./.paths.cache.js')
+
+console.log(`\nFiles to be intercepted: \n${chalk.green(interceptFiles)}`)
 
 const requireHacker = require('require-hacker')
 
