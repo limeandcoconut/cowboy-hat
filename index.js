@@ -1,5 +1,4 @@
 const chokidar = require('chokidar')
-const spinner = require('./avaspinner.js')
 const chalk = require('chalk')
 const write = require('write')
 
@@ -7,7 +6,17 @@ const spawn = require('child_process').spawn
 const fs = require('fs')
 const path = require('path')
 
+const spinner = require('./avaspinner.js')
+
 const pathsCache = path.resolve(__dirname, '.paths.cache.js')
+// This pipes child process io to this process' io.
+const spawnOptions = {
+    stdio: [
+        process.stdin,
+        process.stdout,
+        process.stderr,
+    ],
+}
 
 module.exports = async function(args = {}) {
     let {
@@ -21,11 +30,12 @@ module.exports = async function(args = {}) {
     srcDir = path.basename(srcDir)
     distDir = path.basename(distDir)
 
+    // Create hash of arguments to identify the cache that may be created.
     let argsHash = Object.values(args).join(',')
     let writeCache = false
     let cachedArgs
 
-    // Check if the cache exists or if it is outdated.
+    // Check a the cache exists or if it is for different args.
     try {
         cachedArgs = require(pathsCache).argsHash
     } catch (error) {
@@ -48,7 +58,7 @@ module.exports = async function(args = {}) {
         // This is a string because it will be parsed as js when our paths files is required.
         let distRegex = `/(^|[\\/\\.])${distDir}\\//`
 
-        // Intersect the contents of src and dist to get the paths that need to be intercepted.
+        // Simultaneously read src and dist dirs for file contents.
         let srcRead = new Promise((resolve) => {
             fs.readdir(srcDir, (error, files) => {
                 resolve(files)
@@ -59,44 +69,37 @@ module.exports = async function(args = {}) {
                 resolve(files)
             })
         })
-        let [dir1Contents, dir2Contents] = await Promise.all([srcRead, distRead])
+        let [srcFiles, distFiles] = await Promise.all([srcRead, distRead])
 
+        // Intersect the contents of src and dist to get the paths that can be intercepted.
         let interceptFiles = []
-        dir1Contents.forEach((file) => {
-            if (dir2Contents.includes(file)) {
+        srcFiles.forEach((file) => {
+            if (distFiles.includes(file)) {
+                // Only match the file names.
                 file = path.parse(file).name
                 interceptFiles.push(file)
             }
         })
 
-        // Log these //TODO
         console.log(`\nPaths to be intercepted: \n${chalk.green(interceptFiles)}`)
 
         // Write the paths to our paths file.
-        // This will mkdir -p and or truncate if necessary.
+        // This will runcate if necessary.
         write.sync(pathsCache, `module.exports = {
-            argsHash: '${argsHash}',
+            argsHash: '${argsHash}', /* This identifies this cache as unique to it's args. */
             interceptFiles: ${JSON.stringify(interceptFiles)},
-            distRegex: ${distRegex}, /* This is a tring that we want to parse as a RegExp literal later. */
-            srcDir: '${path.resolve(srcDir)}',
-            distDir: '${path.resolve(distDir)}',
+            distRegex: ${distRegex},
+            srcDir: '${srcDir}',
+            distDir: '${distDir}',
             testEntry: '${path.resolve(testEntry)}',
         }`)
     }
 
-    let spawnOptions = {
-        stdio: [
-            process.stdin,
-            process.stdout,
-            process.stderr,
-        ],
-    }
-
-    // Init flag to true so that we don't start until async actions are done
     let busy = false
+    // Right now runCount is only used to make a log on the first log. e.g. runCount === 0
     let runCount = 0
 
-    // Ignores dotfiles.
+    // Watch dirs ignoring dotfiles.
     chokidar.watch(watch, {
         ignored: /(^|[\/\\])\../,
     }).on('all', async(event) => {
@@ -111,6 +114,8 @@ module.exports = async function(args = {}) {
         await new Promise((resolve) => {
             spawn(
                 'node_modules/.bin/nyc',
+                // intercept.js will require the cached path information, setup intercepts for require() and then require the
+                // test entry point.
                 ['node_modules/.bin/ava', path.resolve(__dirname, './intercept.js')],
                 spawnOptions,
             ).on('close', resolve)
@@ -120,7 +125,8 @@ module.exports = async function(args = {}) {
         if (runCount) {
             console.log('\n')
         }
-        // Start the spinner.
+
+        // Start a spinner that mirrors AVA's while the lcov is being generated.
         spinner.start(' ')
 
         // Await the lcov report.
@@ -137,5 +143,4 @@ module.exports = async function(args = {}) {
         busy = false
         runCount += 1
     })
-
 }

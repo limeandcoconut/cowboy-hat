@@ -151,6 +151,7 @@ Cheers!
 
 ## TODO:
 
+- [ ] Handle .js only or perhaps multiple file types to prevent intersection
 - [ ] Document promise nature of package
 - [ ] *FAASSTERR*
 - [ ] Init method
