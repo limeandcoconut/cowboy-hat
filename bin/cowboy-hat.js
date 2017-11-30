@@ -4,6 +4,7 @@ const yargs = require('yargs')
 const path = require('path')
 const cowboyHat = require('../index.js')
 const chalk = require('chalk')
+const fs = require('fs')
 
 // cowboy-hat -d='./dist/' -s='./src/' -t='./test' -e='test/test.js' -w=['./src/', './tests/'] -f
 // cowboy-hat -c
@@ -49,9 +50,13 @@ let argv = yargs
             describe: 'Use config file if present                  [boolean]',
             // type: 'boolean',
         },
+        // TODO: This should be a boolean. This is a hack to work until yargs fixes conflicts with booleans. yargs 10.0.3
+        usePackageConfig: {
+            alias: 'p',
+            describe: 'Use package.json as config file if present  [boolean]',
+            // type: 'boolean',
+        },
     })
-    // TODO: This should and doesn't provide info with --help. yargs 10.0.3
-    .pkgConf('p')
     .conflicts({
         d: 'c',
         s: 'c',
@@ -59,8 +64,7 @@ let argv = yargs
         e: 'c',
         w: 'c',
         f: 'c',
-        // TODO: -p should be exclusive with everything else. Arrays not supported yet. yargs 10.0.3
-        p: 's',
+        p: 'c',
     })
     .help()
     .argv
@@ -69,11 +73,23 @@ let config
 // If using the config file get it.
 if (argv.c) {
     try {
-        config = require(path.join(process.cwd(), '/cowboy-hat.config.js'))
+        config = require(path.join(process.cwd(), './cowboy-hat.config.js'))
     } catch (error) {
         // DON'T PANIC 👍
         config = {}
         console.log(chalk.yellow('\nNo config file found, proceeding with package defaults.'))
+    }
+    // Use package.json as config if it exists.
+} else if (argv.p) {
+    try {
+        let json = JSON.parse(fs.readFileSync(path.join(process.cwd(), './package.json')))
+        config = json['cowboy-hat'] || null
+    } catch (error) {
+        config = null
+    }
+    if (!config) {
+        console.log(chalk.yellow('\nNo config section found in package.json, proceeding with package defaults.'))
+        config = {}
     }
 // Use yargs and don't copy extra argv keys.
 } else {
@@ -86,5 +102,6 @@ if (argv.c) {
         forceRewriteCache: argv.forceRewriteCache,
     }
 }
+
 cowboyHat(config)
 

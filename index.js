@@ -63,13 +63,19 @@ module.exports = async function(args = {}) {
         let distRegex = `/(^|[\\/\\.])${distDir}\\//`
 
         // Simultaneously read src and dist dirs for file contents.
-        let srcRead = new Promise((resolve) => {
+        let srcRead = new Promise((resolve, reject) => {
             fs.readdir(srcDir, (error, files) => {
+                if (error) {
+                    reject(error)
+                }
                 resolve(files)
             })
         })
-        let distRead = new Promise((resolve) => {
+        let distRead = new Promise((resolve, reject) => {
             fs.readdir(distDir, (error, files) => {
+                if (error) {
+                    reject(error)
+                }
                 resolve(files)
             })
         })

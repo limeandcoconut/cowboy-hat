@@ -151,6 +151,7 @@ Cheers!
 
 ## TODO:
 
+- [ ] Add verbose mode.
 - [ ] Make issues for yargs.
 - [ ] Fix yargs issues.
 - [ ] Add emojis! 🎉
