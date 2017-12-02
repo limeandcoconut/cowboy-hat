@@ -8,134 +8,289 @@
 /          \-----`    \
 `.__________`-_______-'
 ```
-<sub> Art by Tom Youderian <sub>
 
-A package for testing code from the other universe (of uncompiled code).
+> Testing code from the other universe (of uncompiled code).
 
-## What?
-
-This is designed for use when generating code coverage reports on a project using babel.js or other compilation tools. Cowboy Hat allows you to write your tests against your compiled code but generate quick coverage reports against your source as you write and fulfill your tests. Also, it's a small [Futurama reference](http://futurama.wikia.com/wiki/I_Dated_a_Robot).
+`cowboy-hat` allows you to **write your tests against compiled code but generate quick line coverage reports and highlighting against your source as you work on it**. Also, it's a small [Futurama reference](http://futurama.wikia.com/wiki/I_Dated_a_Robot).
 
 ![Futurama](http://i.imgur.com/HtsigPd.jpg)
 
-e.g.
+- [Why cowboy-hat](#why-cowboy-hat)
+- [Usage](#usage)
+- [CLI Usage](#cli)
+- [JS API](#js)
+- [Configuration](#configuration)
+- [Documentation](#documentation)
+- [Testing Cowboy Hat](#testing-cowboy-hat)
+- [Feedback](#feedback-✉️)
+- [TODO](#todo)
+- [Credits](#credits)
+- [Stats](#usage-stats)
+- [License](#license)
 
-Say you have a some code you want to test and you've written your tests against your babel output because you are a responsible person who wants to ensure that your end product is ready to be published. You want to run an in depth coverage report with a tool like [nyc](https://www.npmjs.com/package/nyc) once you're ready to publish but you'd also really like to watch your codebase for file changes and generate *quick* coverage reports maybe even for use with line highlighting in your editor. **Now You Can!** Simply tell cowboy hat which files to watch, where your compiled code is, and where your original code is.
+## Why Cowboy Hat?
+### Run that by me again?
+### Alright, but lets talk about you.
 
-`tests/test.js`
+You wan't to write your tests against your compiled dist, because [you're responsible and quality minded, but you also want fast cycle time in dev,](https://softwareengineering.stackexchange.com/questions/296757/in-ci-should-tests-be-run-against-src-or-dist) which comes from not waiting a geological age for your code to compile every time you save - because who has time for that shit anyway.
+
+So you'd just bite the bullet 👨‍💻🔫 and wait for things to compile. *It's not that long anyway right?*
+
+Whatever.
+
+We all know what you're really going to do. You're going to pretend you'll wait - really, you will - right up until it matters when you're going to think: "I'm already taking a bunch of time to write tests for this thing, I'm NOT waiting forever to get the results every time I want to check coverage".
+
+So that's how it'll go because **here's the clincher: *you want line highlighting.*** Of course you do. You're not some incompetient boring slug, hunting and pecking away at his machine like he's just made it out of the bronze age. You're an adept technocrat, and you stand tall knowing that you write quality, tested, covered, code and that you won't be waiting another second to know that `line 31` is covered but the branch starting on `line 32` needs just a little more of your valuable time.
+
+So screw it! amirite? You're writing tests. You need coverage reports. And `lcovs`! So that you - who's time is of paramount value - don't have to strain or guess to see which lines you'll be pouring your attention into next. You don't need to write tests against compiled code. The chance that you have an error which would cause a difference because of compilation is fucking negligable anyway.
+
+You're writing them against your source.
+
+Well now you don't have to worry about all that; your time is *waaay* too valuable. Too valuable to spend two hours ripping your hair out when you eventually do have that breaking bug caused by compilation. `cowboy-hat` lets you have your cake, and eat it too. 👨‍🍳🎂🍽
+
+Just run it and watch your tests execute against your source while you write them. And allow the windows into your code filled soul to gaze down on the verdent gutters of your editing pane as line after line whispers up to you: "I'm cool now, you can forget about me".
+
+Yeah, you need this tool.
+
+### So how's it work?
+
+Just tell Cowboy Hat which files to watch, where your compiled code is, and where your original code is.
+
+Cowboy Hat watches and, on change, kicks off a coverage report using [nyc](https://www.npmjs.com/package/nyc) and [AVA](https://github.com/avajs/ava). Then it generates an a `locv.info` with [nyc](https://www.npmjs.com/package/nyc). While doing this it will resolve any `require()` calls for something in your compiled code to the parallell file in your working source. If you put `require('../dist/index.js')` in your tests and it resolves as if `require('../src/index.js)`.
+
+This means that you don't have to recompile while you're working on your project but your tests are officially written against the output, and you can run them normally when you `build`, `prepublish`, etc.
+
+**Any** `require()` to a file name which exists in both `distDir` and `srcDir` will be intelligently proxied.
+
+## Usage
+
+### Add cowboy-hat to your project
+
+```console
+$ yarn add --dev cowboy-hat
+```
+#### Peer dependencies
+
+[AVA](https://github.com/avajs/ava) and [nyc](https://www.npmjs.com/package/nyc) are peer dependences. Which makes sense cause you need to be testing with AVA and using nyc for coverage to have the problem that this solves.
+
+```console
+$ yarn add --dev nyc AVA
+```
+
+### Write some code to test
+Write some code in a source file `./src/code-to-test.js`.
 ```js
-const CodeToTest = require('../dist/code-to-test.js');
-
-describe('A test', function() {
-    // Stuffs here
-});
+const path = require('path')
+module.exports = () => {
+    let dirs = ['dist', 'src']
+    let thisDir = path.basename(__dirname)
+    return dirs.indexOf(thisDir)
+}
 ```
 
-Run tests written for files in `dist/` against `src/`.
-```sh
-cowboy-hat --from '../dist/' --to '../src/'
-```
-
-This will watch files in `src/` and `test/` for changes, generate coverage reports, and report like so:
-```sh
-=============================== Coverage summary ===============================
-Statements   : 100% ( 236/236 )
-Branches     : 95.76% ( 113/118 )
-Functions    : 92.73% ( 51/55 )
-Lines        : 100% ( 234/234 )
-================================================================================
-```
-
-**Yes!** You can write your tests in es6!
-
-## How?
-
-```sh
-cowboy-hat --from '../dist/' --to '../src/'
-```
-
-or
-```sh
-cowboy-hat -f '../dist/' -t '../src/'
-```
-
-With config file
-```sh
-cowboy-hat
-```
-
-As a lib
+Compile it to something like `./dist/code-to-test.js`.
 ```js
-const cowboyHat = require('cowboy-hat');
-const config = require('./cowboy-hat.config.js');
+const path = require('path');
+module.exports = () => {
+    let dirs = ['dist', 'src'];
+    let thisDir = path.basename(__dirname);
+    return dirs.indexOf(thisDir);
+};
+//# sourceMappingURL=code-to-test.js.map
+```
+
+[Create your tests with AVA](https://github.com/avajs/ava#create-your-test-file).
+`./test/test.js`
+```js
+const test = require('ava')
+// Returns ../src/code-to-test.js when using cowboy-hat.
+const dirTest = require('../dist/code-to-test.js')
+
+test('A test', (t) => {
+    t.true(dirTest() === 1) // yep
+})
+```
+### Run cowboy-hat
+```console
+$ cowboy-hat
+```
+
+This will watch files in `src/` and `test/` for changes and generate coverage reports like so:
+
+![Starting up cowboy-hat](https://imgur.com/H2ZnZaN.gif)
+
+When you save a file in the glob that it's watching:
+
+![cowboy-hat watching](https://imgur.com/H7LeKN5.gif)
+
+## CLI
+
+```console
+$ cowboy-hat --help
+
+  Options:
+    --version                Show version number                         [boolean]
+    --distDir, -d            The directory that will be intercepted       [string]
+    --srcDir, -s             The directory that will be the destination   [string]
+    --testDir, -t            The directory that holds your tests          [string]
+    --testEntry, -e          The entry file for testing                   [string]
+    --watch, -w              A glob of directories to watch                [array]
+    --forceRewriteCache, -f  Force the internal paths cache to update (usually for
+                             dev)                                        [boolean]
+    --useConfigFile, -c      Use config file if present                  [boolean]
+    --usePackageConfig, -p   Use package.json as config file if present  [boolean]
+    --help                   Show help                                   [boolean]
+```
+
+*Note that by default the CLI will not use either the config file or `package.json`. To do this you must pass a flag and either of those flags are not compatible with any other.*
+
+All options but `-c` and `-p` can be passed simultaneously.
+
+#### CLI examples
+
+```sh
+# With the default options.
+$ cowboy-hat
+
+# With a config file.
+$ cowboy-hat -c
+
+# Using package.json as the config.
+$ cowboy-hat -p
+
+# Passing args in.
+$ cowboy-hat -d './compiled/' -s './source/' -t './tst'
+```
+
+## JS
+
+Cowboy Hat can be used as a module in javascript files with the same API as when running it from the CLI. Simply `require()` it and pass in an object with any arguments; they will be destructred out.
+
+```js
+const cowboyHat = require('cowboy-hat')
+const config = require('./cowboy-hat.config.js')
 
 cowboyHat(config);
 ```
+-or-
 
-## API
+```js
+const cowboyHat = require('cowboy-hat')
 
-### From
-The diretory that your tests are written against.
-Default: `../dist/`
-Type: String
-Argument: --from or -f
+cowboyHat({
+    srcDir: './source/',
+    distDir: './prod/',
+    watch: [
+        './source/',
+        './index.js',
+    ],
+})
+```
+-or-
 
-### To
-The directory that your tests will run against.
-Default: `../src/`
-Type: String
-Argument: --to or -t
+![Enjoying cowboy-hat](https://imgur.com/M9oXB4i.gif)
 
-### Test Directory
-The directory where your tests are kept.
-Default: `./test/*.js`
-Type: String
-Argument: --testDir or -d
+## Configuration
 
-### Test Entry Point
-The entry point for running tests.
-Default: `<testDir>`
-Type: String
-Argument: --testEntry or -e
+The CLI has two options that are not used in the config files. The options `-c` and `-p` tell the cli to use the config file `cowboy-hat.config.js` or `package.json` respectively. For obvious reasons these cannot be set in either config.
 
-### Watch
-An array of files to watch for changes.
-Default: `[<to>.replace(/^\.\.\//, ''), <testDir>]`
-Defaults to the `to` and `testDir` arguments. `to` will have the first `../` trimmed from the front of the string if it is present. This is because by default cowboy-hat expects the `to` and `from` arguments to be one directory lower than where the command is run from.
-Type: Array
-Argument: --watch or -w
+### Config File
 
-## Config file
-You can use a config file `cowboy-hat.config.js` for any of these arguments. Cowboy hat will look for it when it is run from the command line and any arguments supplied to the cli will override the config.
+A config file must be named `cowboy-hat.config.js` to be recognized when passing the `-c` option to the CLI.
 
 ```js
 module.exports = {
-    from: '../dist/',
-    to: '../src/',
-    watch: [], // This will be overridden with the default listed above because it is empty
-    testDir: 'test/*.js',
-    testEntry: 'test.js',
-};
+    srcDir: './src/',
+    distDir: './dist/',
+    testDir: './test/',
+    testEntry: './test/test.js',
+    watch: [
+        './src/',
+        './test/',
+    ],
+    forceRewriteCache: false,
+}
 ```
 
-## Directory Structure
-By default cowboy-hat expects that your `to` and `from` will be one directory lower than where the command is run from. This is why the paths are shown as they are.
-I.e.
-Watch the directories `./src` and `./test` for changes then replace `'../dist'` with `'../src'`  inside of `./test` (then run tests and swap back).
+### package.json config
+
+All the above arguments also apply to the `cowboy-hat` section of your `package.json`.
+
+```json
+{
+    "cowboy-hat": {
+        "srcDir": "./src/"
+        // etc.
+    }
+}
+```
+
+There is no precedence to either config. In the CLI or in JS, whatever you pass is what is used. They are mutually exclusive.
+
+### Options
+
+*All paths should be relative to where `cowboy-hat` is run from.*
+
++ `distDir`: The directory for which all `require()` calls will be intercepted.  
+   Default: `'./dist/'`
++ `srcDir`: The directory that intercepted `require()` calls will be proxied to.  
+   Default: `'./src/'`
++ `testDir`: The directory where you keep your tests.  
+   Default: `'./test/'`
++ `testEntry`: The entry point for your tests.  
+   Default: `path.join(testDir, './test.js')`   
+   So... `./test/test.js` by default, default.
++ `watch`: A glob of files or directores that you want to watch for changes.  
+   Default: `[path.resolve(srcDir), path.resolve(testDir)]`  
+   So... something like `['/Users/jacob/Sites/cowboy-hat/src/', '/Users/yadda/yadda/yadda/test/']`.
++ `forceRewriteCache`: A flag telling Cowboy Hat to flush its' internal cache of path information. This cache **always** unique to the arguments passed so this flag is probably only useful for internal Cowboy Hat dev.  
+   Default: `false`
+
+### Directory Structure
+By default Cowboy Hat expects that your direcory structure to look something like this:
 
 ```
 project -
     |____dist +
-        |____foo.js
+    |   |____code-to-test.js
+    |    
     |____src +
-        |____foo.js
+    |   |____code-to-test.js
+    |
     |____test +
-        |____foo-tests.js
-    |____test.js
+    |   |____test.js
+    |
+    |____cowboy-hat.config.js
+```
+
+But hey, go crazy. Do whatever, yo! 💃 🕺
+
+*Note that, as mentioned above and below, all `.js` files and only those that are present in both your `distDir` and `srcDir` will be proxied. They must share a name. And only `.js` files are affected.* 
+
+## Documentation
+
+Tests must be written using [AVA](https://github.com/avajs/ava) and coverage is generated using [nyc](https://www.npmjs.com/package/nyc). 
+
+Tests and coverage are run on every file change inside of the watched directories then nyc generates an `lcov.info` so that you can use it for hightlighting.
+
+![cowboy-hat in action in an editor](https://imgur.com/4JO5JTI.gif)
+
+When Cowboy hat is run it creates an internal cache of some information and, notably, the files that it will be proxying. The next time Cowboy Hat is started it will look for a cache and if necessary update it. 
+
+Cowboy Hat also watches the `srcDir` and `distDir` for file adds and removes. When one occurs it will decide wether or not to add it to the files that it is proxying and then run coverage normally. In this way you can get updates when adding files to `distDir` but not on file changes.
+
+The option `forceRewriteCache` will do what it says. Since the cache is updated every time the files or arguments change it should probably only be used when in dev on Cowboy Hat.
+
+Cowboy Hat returns a Promise that resolves just after the watchers for various files have been set up. 
+
+```js
+cowboyHat(config).then(() => {
+    console.log('It\'s watching. 👀')
+})
 ```
 
 ## Testing Cowboy Hat
-To test it just pull the repo and run `cowboy-hat` in it's root dir and make trigger a change on either `test/test.js` or `src/mock-code.js`. Everything is passing if you have 100% line coverage.
+To test it just pull the repo, run `cowboy-hat` in the root dir, and trigger a change on either `test/test.js` or `src/code-to-test.js`. Everything is passing if you have 100% line coverage. The generated lcov applies to `src/code-to-test.js`; check it out to really see if it works.
 
 ## Feedback ✉️
 It is greatly appreciated! 🎉
@@ -151,19 +306,31 @@ Cheers!
 
 ## TODO:
 
-- [ ] Add verbose mode.
+- [ ] Better example of compiled code.
+- [x] Document that dist are watched for paths cache.
+- [ ] Test peer dependencies and document.
+- [ ] Test global install.
+- [ ] Test if src and dir can be at different levels.
+- [ ] Add verbose mode. For logging args and things.
+- [ ] Add links to other packages in readme.
 - [ ] Make issues for yargs.
-- [ ] Fix yargs issues.
+- [X] Document.
 - [ ] Add emojis! 🎉
 - [ ] Handle .js only or perhaps multiple file types to prevent filename intersection.
-- [ ] Document promise nature of package.
+- [x] Document promise nature of package.
 - [ ] *FAASSTERR*
 
 ### Maybe
+- [ ] Coroutines to prevent race conditions on massive file adds and unlinks.
+- [ ] Always ignore node_modules etc when watching.
 - [ ] Make cowboy-hat exit when no files are being watched
 - [ ] Make watching optional
 - [ ] Switch to (webpack-esque) constructor syntax
 - [ ] Add better tests
+
+## Credits
+
+ASCII art in header by: Tom Youderian
 
 ## Usage Stats
 
