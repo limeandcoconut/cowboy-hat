@@ -1,6 +1,6 @@
-const result = require('../dist/mock-code.js')
+const result = require('../dist/code-to-test.js')
 const test = require('ava')
 
-test('Should equal 1', (assert) => {
-    assert.true(result === 1)
+test('Should equal 1', (t) => {
+    t.true(result === 1)
 })
