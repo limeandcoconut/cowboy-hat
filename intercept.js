@@ -9,9 +9,8 @@ const requireHacker = require('require-hacker')
 
 // Intercept all requires after this point.
 requireHacker.resolver((requirePath, module) => {
-    let justBaseName = path.basename(requirePath, path.extname(requirePath))
     // If the file shares a name with one of our intercept targets and matches the dist dir resolve it to the src dir.
-    if (interceptFiles.includes(justBaseName) && distRegex.test(requirePath)) {
+    if (interceptFiles.includes(path.basename(requirePath)) && distRegex.test(requirePath)) {
         requirePath = requirePath.replace(distDir, srcDir)
         return requireHacker.resolve(requirePath, module)
     }
