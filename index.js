@@ -9,18 +9,6 @@ const path = require('path')
 const spinner = require('./ava-spinner.js')
 const cacheString = require('./cache-string.js')
 
-const projectIntercept = './coverage/intercept.js'
-const localIntercept = path.resolve(__dirname, './intercept.js')
-try {
-    fs.statSync(localIntercept)
-} catch (error) {
-    if (/ENOENT.*no\ssuch/.test(error)) {
-        fs.createReadStream(localIntercept).pipe(fs.createWriteStream(projectIntercept))
-    } else {
-        throw error
-    }
-}
-
 const pathsCache = path.resolve(__dirname, '.paths.cache.js')
 // This pipes child process io to this process' io.
 const spawnOptions = {
@@ -44,6 +32,16 @@ module.exports = async function(args = {}) {
     srcDir = path.basename(srcDir)
     distDir = path.basename(distDir)
 
+    // nyc will have it's child process run intercept.js, run AVA, and report to the cli plus lcov.info.
+    // intercept.js will require the cached path information and setup intercepts for require().
+    const nycOptions = [
+        `--require=${path.resolve('./intercept.js')}`,
+        '--reporter=lcov',
+        '--reporter=text',
+        'node_modules/.bin/ava',
+        path.resolve(testEntry),
+    ]
+
     // To test wether something is in the src dir.
     let srcRegex = new RegExp(`(^|[.\\/])${srcDir}[\\/]`)
     // Init cache string with arguments that won't need to update ever.
@@ -64,6 +62,7 @@ module.exports = async function(args = {}) {
 
     // Get initial array of intercept files.
     let interceptFiles = getInterceptFiles(srcFiles, distFiles)
+    logIntercepts(interceptFiles)
     // Create uid for this info to identify the cache that may be created.
     // This just has to be unique and include the arguments used and files to intercept.
     let infoUID = JSON.stringify(interceptFiles) + argsUID
@@ -131,9 +130,7 @@ module.exports = async function(args = {}) {
         await new Promise((resolve) => {
             spawn(
                 'node_modules/.bin/nyc',
-                // intercept.js will require the cached path information, setup intercepts for require() and then
-                // require the test entry point.
-                ['node_modules/.bin/ava', projectIntercept],
+                nycOptions,
                 spawnOptions,
             ).on('close', resolve)
         })
@@ -143,20 +140,8 @@ module.exports = async function(args = {}) {
             console.log('\n')
         }
 
-        // Start a spinner that mirrors AVA's while the lcov is being generated.
-        spinner.start(' ')
-
-        // Await the lcov report.
-        await new Promise((resolve) => {
-            spawn(
-                'node_modules/.bin/nyc',
-                ['report', '--reporter=lcov'],
-                spawnOptions,
-            ).on('close', resolve)
-        })
-
         // When the report is done finish up.
-        spinner.stop('\nlcov complete.')
+        spinner.stop('\nlcov.info complete.')
         locked = false
         runCount += 1
     }
@@ -209,6 +194,7 @@ module.exports = async function(args = {}) {
 
             // Get new intercept files.
             interceptFiles = getInterceptFiles(filesSet, otherFilesSet)
+            logIntercepts(interceptFiles)
             let infoUID = JSON.stringify(interceptFiles) + argsUID
 
             // Write a new cache.
@@ -233,4 +219,13 @@ function resolveFiles(resolve, reject) {
         }
         resolve(files)
     }
+}
+
+/**
+ * Log the intercept files to the console.
+ * @function logIntercepts
+ * @param   {Array} interceptFiles  The files to be logged.
+ */
+function logIntercepts(interceptFiles) {
+    console.log(`\nFiles to be intercepted: \n${chalk.green(interceptFiles)}`)
 }

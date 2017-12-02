@@ -1,11 +1,6 @@
 const path = require('path')
-const chalk = require('chalk')
 // Get cached path information.
-const cowboyHatPath = path.dirname(require.resolve('cowboy-hat'))
-const pathsCache = path.resolve(cowboyHatPath, './.paths.cache.js')
-const {interceptFiles, distRegex, srcDir, distDir, testEntry} = require(pathsCache)
-
-console.log(`\nFiles to be intercepted: \n${chalk.green(interceptFiles)}`)
+const {interceptFiles, distRegex, srcDir, distDir} = require('./.paths.cache.js')
 
 const requireHacker = require('require-hacker')
 
@@ -18,5 +13,3 @@ requireHacker.resolver((requirePath, module) => {
     }
 })
 
-// Require the user's tests.
-require(testEntry)
