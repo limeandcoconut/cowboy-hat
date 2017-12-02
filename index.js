@@ -9,6 +9,18 @@ const path = require('path')
 const spinner = require('./ava-spinner.js')
 const cacheString = require('./cache-string.js')
 
+const projectIntercept = './coverage/intercept.js'
+const localIntercept = path.resolve(__dirname, './intercept.js')
+try {
+    fs.statSync(localIntercept)
+} catch (error) {
+    if (/ENOENT.*no\ssuch/.test(error)) {
+        fs.createReadStream(localIntercept).pipe(fs.createWriteStream(projectIntercept))
+    } else {
+        throw error
+    }
+}
+
 const pathsCache = path.resolve(__dirname, '.paths.cache.js')
 // This pipes child process io to this process' io.
 const spawnOptions = {
@@ -121,7 +133,7 @@ module.exports = async function(args = {}) {
                 'node_modules/.bin/nyc',
                 // intercept.js will require the cached path information, setup intercepts for require() and then
                 // require the test entry point.
-                ['node_modules/.bin/ava', path.resolve(__dirname, './intercept.js')],
+                ['node_modules/.bin/ava', projectIntercept],
                 spawnOptions,
             ).on('close', resolve)
         })

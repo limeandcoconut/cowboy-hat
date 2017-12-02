@@ -306,9 +306,12 @@ Cheers!
 
 ## TODO:
 
+- [ ] Better place to put intercept.js
+- [ ] Sync File io for copying intercept.js
+- [ ] Document file copy
 - [ ] Better example of compiled code.
 - [x] Document that dist are watched for paths cache.
-- [ ] Test peer dependencies and document.
+- [x] Test peer dependencies and document.
 - [ ] Test global install.
 - [ ] Test if src and dir can be at different levels.
 - [ ] Add verbose mode. For logging args and things.
@@ -321,6 +324,7 @@ Cheers!
 - [ ] *FAASSTERR*
 
 ### Maybe
+- [ ] Watch for adds in regular watch dirs.
 - [ ] Coroutines to prevent race conditions on massive file adds and unlinks.
 - [ ] Always ignore node_modules etc when watching.
 - [ ] Make cowboy-hat exit when no files are being watched
