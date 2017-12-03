@@ -29,8 +29,8 @@ module.exports = async function(args = {}) {
         forceRewriteCache = false,
     } = args
 
-    srcDir = path.basename(srcDir)
-    distDir = path.basename(distDir)
+    srcDir = path.resolve(srcDir)
+    distDir = path.resolve(distDir)
 
     // nyc will have it's child process run intercept.js, run AVA, and report to the cli plus lcov.info.
     // intercept.js will require the cached path information and setup intercepts for require().
@@ -158,10 +158,10 @@ module.exports = async function(args = {}) {
         // Intersect the contents of src and dist to get the paths that can be intercepted.
         let interceptFiles = []
         aFiles.forEach((file) => {
-            if (bFiles.has(file)) {
-                // Only match the file names.
-                file = path.basename(file)
+            // If a file exists in both dirs and is a .js file proxy it.
+            if (bFiles.has(file) && path.extname(file) === '.js') {
                 interceptFiles.push(file)
+
             }
         })
 

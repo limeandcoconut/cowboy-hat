@@ -7,7 +7,7 @@ module.exports = {
         this.distDir = distDir
         // Regex to test required paths against.
         // This is a string that will parse as a regex literal when exported.
-        this.distRegex = `/(^|[\\/\\.])${distDir}\\//`
+        this.distRegex = `/(^|[\\/\\.])${path.basename(distDir)}\\//`
         this.resolvedTestEntry = path.resolve(testEntry)
     },
     create(infoUID, interceptFiles) {

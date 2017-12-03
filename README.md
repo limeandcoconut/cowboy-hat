@@ -306,31 +306,30 @@ Cheers!
 
 ## TODO:
 
-- [ ] Better place to put intercept.js
-- [ ] Sync File io for copying intercept.js
-- [ ] Document file copy
+- [ ] See how nested dirs under dist ard src act.
 - [ ] Better example of compiled code.
 - [x] Document that dist are watched for paths cache.
 - [x] Test peer dependencies and document.
 - [ ] Test global install.
-- [ ] Test if src and dir can be at different levels.
+- [x] Test if src and dir can be at different levels.
 - [ ] Add verbose mode. For logging args and things.
 - [ ] Add links to other packages in readme.
 - [ ] Make issues for yargs.
+- [ ] Make issue for nyc.
 - [X] Document.
 - [ ] Add emojis! 🎉
 - [ ] Handle .js only or perhaps multiple file types to prevent filename intersection.
 - [x] Document promise nature of package.
 - [ ] *FAASSTERR*
+- [ ] Make cowboy-hat exit when no files are being watched.
 
 ### Maybe
 - [ ] Watch for adds in regular watch dirs.
 - [ ] Coroutines to prevent race conditions on massive file adds and unlinks.
 - [ ] Always ignore node_modules etc when watching.
-- [ ] Make cowboy-hat exit when no files are being watched
-- [ ] Make watching optional
-- [ ] Switch to (webpack-esque) constructor syntax
-- [ ] Add better tests
+- [ ] Make watching optional.
+- [ ] Switch to (webpack-esque) constructor syntax.
+- [ ] Add better tests.
 
 ## Credits
 
