@@ -41,7 +41,13 @@ let argv = yargs
         // TODO: This should be a boolean. This is a hack to work until yargs fixes conflicts with booleans. yargs 10.0.3
         forceRewriteCache: {
             alias: 'f',
-            describe: 'Force the internal paths cache to update (usually for dev)                                        [boolean]',
+            describe: 'Force the internal paths cache to update    [boolean]',
+            // type: 'boolean',
+        },
+        // TODO: This should be a boolean. This is a hack to work until yargs fixes conflicts with booleans. yargs 10.0.3
+        verbose: {
+            alias: 'v',
+            describe: 'Start cowboy hat in verbose mode            [boolean]',
             // type: 'boolean',
         },
         // TODO: This should be a boolean. This is a hack to work until yargs fixes conflicts with booleans. yargs 10.0.3
@@ -64,6 +70,7 @@ let argv = yargs
         e: 'c',
         w: 'c',
         f: 'c',
+        v: 'c',
         p: 'c',
     })
     .help()
@@ -100,8 +107,11 @@ if (argv.c) {
         testDir: argv.testDir,
         testEntry: argv.testEntry,
         forceRewriteCache: argv.forceRewriteCache,
+        verbose: argv.verbose,
     }
 }
 
-cowboyHat(config)
+cowboyHat(config).catch((error) => {
+    throw error
+})
 

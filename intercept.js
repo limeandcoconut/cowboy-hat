@@ -1,6 +1,6 @@
 const path = require('path')
 // Get cached path information.
-const {interceptFiles, distRegex, srcDir, distDir} = require('./.paths.cache.js')
+const {proxyFiles, distRegex, srcDir, distDir} = require('./.paths.cache.js')
 
 const requireHacker = require('require-hacker')
 
@@ -19,7 +19,7 @@ requireHacker.resolver((requirePath, module) => {
     // Ensure the extension .js.
     let filename = name + '.js'
     // If the file is not one of our proxy files return.
-    if (!interceptFiles.includes(filename)) {
+    if (!proxyFiles.includes(filename)) {
         return
     }
     // Get the full path to the requested module.

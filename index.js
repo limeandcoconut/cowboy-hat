@@ -27,13 +27,14 @@ module.exports = async function(args = {}) {
         testEntry = path.join(testDir, './test.js'),
         watch = [path.resolve(srcDir), path.resolve(testDir)],
         forceRewriteCache = false,
+        verbose = false,
     } = args
 
     srcDir = path.resolve(srcDir)
     distDir = path.resolve(distDir)
 
     // nyc will have it's child process run intercept.js, run AVA, and report to the cli plus lcov.info.
-    // intercept.js will require the cached path information and setup intercepts for require().
+    // intercept.js will require the cached path information and setup proxies for require().
     const nycOptions = [
         `--require=${path.resolve(__dirname, './intercept.js')}`,
         '--reporter=lcov',
@@ -45,9 +46,14 @@ module.exports = async function(args = {}) {
     // To test wether something is in the src dir.
     let srcRegex = new RegExp(`(^|[.\\/])${srcDir}[\\/]`)
     // Init cache string with arguments that won't need to update ever.
-    cacheString.init(srcDir, distDir, testEntry)
+    cacheString.init(srcDir, distDir)
     // Create args UID for later.
-    let argsUID = JSON.stringify([srcDir, distDir, testDir, testEntry, watch, forceRewriteCache])
+    let argsInfo = [srcDir, distDir, testDir, testEntry, watch, forceRewriteCache, verbose]
+    let argsUID = JSON.stringify(argsInfo)
+
+    if (verbose) {
+        console.log(chalk.blue(`\nargs UID:\n${JSON.stringify(argsInfo, null, 1)}`))
+    }
 
     // Simultaneously read src and dist dirs for initial files.
     let srcRead = new Promise((resolve, reject) => {
@@ -60,12 +66,16 @@ module.exports = async function(args = {}) {
     srcFiles = new Set(srcFiles)
     distFiles = new Set(distFiles)
 
-    // Get initial array of intercept files.
-    let interceptFiles = getInterceptFiles(srcFiles, distFiles)
-    logIntercepts(interceptFiles)
+    // Get initial array of proxy files.
+    let proxyFiles = getproxyFiles(srcFiles, distFiles)
+    if (!proxyFiles.length) {
+        console.log(chalk.red('No files to proxy. Exiting.'))
+        return
+    }
+    logProxyFiles(proxyFiles)
     // Create uid for this info to identify the cache that may be created.
-    // This just has to be unique and include the arguments used and files to intercept.
-    let infoUID = JSON.stringify(interceptFiles) + argsUID
+    // This just has to be unique and include the arguments used and files to proxy.
+    let infoUID = JSON.stringify(proxyFiles) + argsUID
 
     let writeCache = false
 
@@ -79,7 +89,7 @@ module.exports = async function(args = {}) {
             // Cache doesn't exist, write one.
             writeCache = true
         }
-        // If the cache isn't for the same args and intercepts write a new one.
+        // If the cache isn't for the same args and proxies write a new one.
         if (cachedUID !== infoUID) {
             writeCache = true
         }
@@ -88,10 +98,12 @@ module.exports = async function(args = {}) {
     if (writeCache || forceRewriteCache) {
         if (forceRewriteCache) {
             console.log(chalk.yellow('\nForcing cache rewrite.'))
+        } else if (verbose) {
+            console.log(chalk.blue('\nRewriting cache.'))
         }
         // Write the paths to our paths file.
         // This will truncate if necessary.
-        write.sync(pathsCache, cacheString.create(infoUID, interceptFiles))
+        write.sync(pathsCache, cacheString.create(infoUID, proxyFiles))
     }
 
     let locked = false
@@ -107,8 +119,8 @@ module.exports = async function(args = {}) {
     ).on('ready', runCoverage)
 
     // When files are added or removed from src or dist update the cache accordingly.
-    let interceptDirs = [path.resolve(distDir), path.resolve(srcDir)]
-    chokidar.watch(interceptDirs, {
+    let proxyDirs = [path.resolve(distDir), path.resolve(srcDir)]
+    chokidar.watch(proxyDirs, {
         ignored: /(^|[/\\])\../,
         ignoreInitial: true,
     }).on('unlink', coverAnd('delete')
@@ -147,25 +159,25 @@ module.exports = async function(args = {}) {
     }
 
     /**
-     * Do an intersection on the file Sets passed. These are the files that cowboy-hat needs to intercept.
-     * @function getInterceptFiles
+     * Do an intersection on the file Sets passed. These are the files that cowboy-hat needs to proxy.
+     * @function getproxyFiles
      * @param   {Set}   aFiles      A set of files to instersect.
      * @param   {Set}   bFiles      A set of files to instersect.
-     * @return  {Array}             Returns an array of files that need to be intercepted.
+     * @return  {Array}             Returns an array of files that need to be proxied.
     */
-    function getInterceptFiles(aFiles, bFiles) {
+    function getproxyFiles(aFiles, bFiles) {
 
-        // Intersect the contents of src and dist to get the paths that can be intercepted.
-        let interceptFiles = []
+        // Intersect the contents of src and dist to get the paths that can be proxied.
+        let proxyFiles = []
         aFiles.forEach((file) => {
             // If a file exists in both dirs and is a .js file proxy it.
             if (bFiles.has(file) && path.extname(file) === '.js') {
-                interceptFiles.push(file)
+                proxyFiles.push(file)
 
             }
         })
 
-        return interceptFiles
+        return proxyFiles
     }
 
     /**
@@ -192,13 +204,22 @@ module.exports = async function(args = {}) {
             let basename = path.basename(file)
             filesSet[method](basename)
 
-            // Get new intercept files.
-            interceptFiles = getInterceptFiles(filesSet, otherFilesSet)
-            logIntercepts(interceptFiles)
-            let infoUID = JSON.stringify(interceptFiles) + argsUID
+            if (verbose) {
+                let word = method === 'add' ? 'Adding' : 'Deleting'
+                console.log(chalk.blue(`${word} ${basename}`))
+            }
+
+            // Get new proxy files.
+            proxyFiles = getproxyFiles(filesSet, otherFilesSet)
+            logProxyFiles(proxyFiles)
+            let infoUID = JSON.stringify(proxyFiles) + argsUID
+
+            if (verbose) {
+                console.log(chalk.blue('\nRewriting cache.'))
+            }
 
             // Write a new cache.
-            write.sync(pathsCache, cacheString.create(infoUID, interceptFiles))
+            write.sync(pathsCache, cacheString.create(infoUID, proxyFiles))
             // Cover
             runCoverage()
         }
@@ -222,10 +243,10 @@ function resolveFiles(resolve, reject) {
 }
 
 /**
- * Log the intercept files to the console.
- * @function logIntercepts
- * @param   {Array} interceptFiles  The files to be logged.
+ * Log the proxy files to the console.
+ * @function logProxyFiles
+ * @param   {Array} proxyFiles  The files to be logged.
  */
-function logIntercepts(interceptFiles) {
-    console.log(`\nFiles to be intercepted: \n${chalk.green(interceptFiles)}`)
+function logProxyFiles(proxyFiles) {
+    console.log(`\nFiles to be proxied: \n${chalk.green(proxyFiles)}`)
 }

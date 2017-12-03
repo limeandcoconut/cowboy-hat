@@ -2,6 +2,7 @@ const cowboyHat = require('./index.js')
 
 cowboyHat({
     forceRewriteCache: true,
+    // verbose: true,
 })
 
 // This is the reverse of the defalt config.
@@ -10,4 +11,5 @@ cowboyHat({
 //     srcDir: './dist/',
 //     distDir: './src/',
 //     forceRewriteCache: true,
+// // verbose: true,
 // })
