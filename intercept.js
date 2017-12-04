@@ -1,6 +1,7 @@
 const path = require('path')
+const chalk = require('chalk')
 // Get cached path information.
-const {proxyFiles, distRegex, srcDir, distDir} = require('./.paths.cache.js')
+const {proxyFiles, distRegex, srcDir, distDir, verbose} = require('./.paths.cache.js')
 
 const requireHacker = require('require-hacker')
 
@@ -30,6 +31,10 @@ requireHacker.resolver((requirePath, module) => {
     if (path.dirname(requirePath) === distDir) {
         // Return the src file instead.
         // No need to resolve as we know that the file exists
-        return path.join(srcDir, filename)
+        let srcPath = path.join(srcDir, filename)
+        if (verbose) {
+            console.log(`\n${chalk.red('required:')} ${chalk.blue(requirePath)}\n${chalk.green('resolved:')} ${chalk.blue(srcPath)}`)
+        }
+        return srcPath
     }
 })

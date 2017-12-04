@@ -46,7 +46,7 @@ module.exports = async function(args = {}) {
     // To test wether something is in the src dir.
     let srcRegex = new RegExp(`(^|[.\\/])${srcDir}[\\/]`)
     // Init cache string with arguments that won't need to update ever.
-    cacheString.init(srcDir, distDir)
+    cacheString.init(srcDir, distDir, verbose)
     // Create args UID for later.
     let argsInfo = [srcDir, distDir, testDir, testEntry, watch, forceRewriteCache, verbose]
     let argsUID = JSON.stringify(argsInfo)
