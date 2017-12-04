@@ -134,7 +134,7 @@ And when you save a file in the glob that it's watching:
 $ cowboy-hat --help
   Options:
     --version                Show version number                         [boolean]
-    --distDir, -d            The directory that will be intercepted       [string]
+    --distDir, -d            The directory that will be proxied       [string]
     --srcDir, -s             The directory that will be the destination   [string]
     --testDir, -t            The directory that holds your tests          [string]
     --testEntry, -e          The entry file for testing                   [string]

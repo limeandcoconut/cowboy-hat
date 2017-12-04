@@ -36,10 +36,10 @@ module.exports = async function(args = {}) {
     // nyc will have it's child process run intercept.js, run AVA, and report to the cli plus lcov.info.
     // intercept.js will require the cached path information and setup proxies for require().
     const nycOptions = [
-        `--require=${path.resolve(__dirname, './intercept.js')}`,
         '--reporter=lcov',
         '--reporter=text',
         'node_modules/.bin/ava',
+        `--require=${path.resolve(__dirname, './intercept.js')}`,
         path.resolve(testEntry),
     ]
 

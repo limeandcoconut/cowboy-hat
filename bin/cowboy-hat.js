@@ -15,7 +15,7 @@ let argv = yargs
     .options({
         distDir: {
             alias: 'd',
-            describe: 'The directory that will be intercepted',
+            describe: 'The directory that will be proxied',
             type: 'string',
         },
         srcDir: {
@@ -111,7 +111,4 @@ if (argv.c) {
     }
 }
 
-cowboyHat(config).catch((error) => {
-    throw error
-})
-
+cowboyHat(config)
